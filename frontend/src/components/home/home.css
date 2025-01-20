@@ -1,24 +1,99 @@
-/* * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-  }
+.homepage {
+  font-family: Arial, sans-serif;
+}
+
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #3b82f6;
+  padding: 10px 20px;
+  color: white;
+  margin-bottom: 50px;
+}
+
+.logo {
+  font-size: 1.5em;
+  font-weight: bold;
+}
+
+.nav-button {
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  font-size: 1em;
+  margin-left: 20px;
+}
+
+.nav-button:hover {
+  text-decoration: underline;
+}
+
+.courses-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); /* 2-3 courses per row depending on screen size */
+
+ row-gap: 50px;
+  column-gap: 50px;
+  max-width: 1200px;
+}
+
+.course-tile {
+  display: flex;
+  align-items: center; /* Aligns the content vertically */
+  justify-content: space-between;
+  border: 1px solid #ccc;
+  padding: 16px;
+  border-radius: 8px;
+  width: 100%;
+  max-width: 600px; /* Adjust based on your needs */
+}
+.course-tile img {
+  margin-left: 16px;
+  width: 120px; /* Adjust the size as needed */
+  height: auto;
+  object-fit: cover;
+}
+.course-tile h2,
+p {
   
-  body {
-    font-family: Arial, sans-serif;
-    background-color: #f0f2f5;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    margin: 0;
-  }
-  #home-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 100%;
+  margin-left: 30px;
+}
+
+.course-tile:hover {
+  transform: scale(1.05);
+}
+
+.course-image {
+  width: 50%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.course-details {
+  width: 50%;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  text-align: left;
+}
+
+.course-details h2 {
+  margin: 0;
+  font-size: 1.2em;
+}
+
+.course-details p {
+  margin: 10px 0 0 0;
+  font-size: 1em;
+  color: #555;
+}
+
+@media (min-width: 1024px) {
+  .courses-grid {
+    margin: 0 auto;
     max-width: 1200px;
-    height: 600px;
-  } */
-  
+  }
+}
