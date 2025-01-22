@@ -5,6 +5,7 @@ import './App.css'
 import NavBar from './components/NavBar/NavBar'
 import Home from './components/home/home'
 import Login from './components/login/login'
+import Chatupload from './components/chatupload/chatupload'
 
 function App() {
   const [count, setCount] = useState(0)
@@ -12,7 +13,7 @@ function App() {
   return (
     <div style={{ width: '100%' }}>
       {/* <NavBar /> */}
-      <Home />
+      <Chatupload />
       {/* <Login /> */}
     </div>
   )
