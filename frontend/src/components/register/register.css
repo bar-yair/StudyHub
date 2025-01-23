@@ -1,0 +1,103 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f0f2f5;
+}
+
+.signup-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: #f0f2f5;
+}
+
+.signup-box {
+    width: 400px;
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    text-align: center;
+}
+
+.title {
+    font-size: 2rem;
+    color: #1877f2;
+    margin-bottom: 8px;
+}
+
+.subtitle {
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
+.description {
+    margin-bottom: 16px;
+    font-size: 0.9rem;
+    color: #606770;
+}
+
+.signup-form {
+    text-align: left;
+}
+
+.form-group {
+    margin-bottom: 12px;
+}
+
+.name-inputs {
+    display: flex;
+    gap: 10px;
+}
+
+.input {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 8px;
+    border: 1px solid #dddfe2;
+    border-radius: 4px;
+    font-size: 1rem;
+}
+
+.birthday-select {
+    display: flex;
+    gap: 10px;
+}
+
+.gender-options {
+    display: flex;
+    justify-content: space-around;
+    font-size: 0.9rem;
+    margin: 30px 0;
+}
+
+.policy {
+    font-size: 0.8rem;
+    color: #606770;
+    margin-bottom: 12px;
+}
+
+.signup-btn {
+    width: 100%;
+    padding: 10px;
+    background-color: #42b72a;
+    color: white;
+    font-size: 1.1rem;
+    font-weight: bold;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.signup-btn:hover {
+    background-color: #36a420;
+}
+
+.already-account {
+    margin-top: 12px;
+    font-size: 0.9rem;
+    color: #1877f2;
+    cursor: pointer;
+}
