@@ -1,0 +1,27 @@
+#navbar-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    margin-bottom: 65px;
+  }
+
+  .toolbar-background {
+    background-color: #4685EE;
+  }
+
+  .toolbar-item {
+    padding-left: 40px;
+  }
+  
+  .height {
+    height: auto;
+  }
+  
+
+  .logo {
+    width: 100%; /* תואם לרוחב של ה-NavBar */
+    max-width: 150px; /* גודל מקסימלי של הלוגו, תוכל לשנות לפי הצורך */
+    height: auto; /* שומר על פרופורציות הלוגו */
+    border-radius: 10px; /* קצוות מעוגלים */
+  }
