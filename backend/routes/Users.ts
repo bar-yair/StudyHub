@@ -82,7 +82,7 @@ router.post('/login', async (req: Request, res: Response): Promise<void> => {
     });
 
     // Login successful - send the token (including firstName and lastName)
-    res.json({ message: 'Login successful', token, firstName: user.firstName, lastName: user.lastName });
+    res.json({ message: 'Login successful', token, firstName: user.firstName, lastName: user.lastName, username: user.username });
   } catch (err: any) {
     console.error(err.message);
     res.status(500).send('Server Error');

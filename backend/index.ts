@@ -2,6 +2,8 @@ import express, { Request, Response } from 'express';
 import connectDB from './db/connection';
 import userRoutes from './routes/Users'; 
 import cors from 'cors';
+import courseRoutes from './routes/Courses'
+
 
 const app = express();
 const PORT = 5000;
@@ -15,6 +17,7 @@ app.use(cors({
 
 // Routes
 app.use('/api/users', userRoutes);
+app.use('/api/courses', courseRoutes);
 
 connectDB();
 

@@ -3,6 +3,7 @@ body {
     margin: 0;
     padding: 0;
     background-color: #f0f2f5;
+    height:100%;
 }
 
 .signup-container {
@@ -100,4 +101,14 @@ body {
     font-size: 0.9rem;
     color: #1877f2;
     cursor: pointer;
+}
+
+.success-message {
+    color: green;
+    font-weight: bold;
+  }
+  
+  .error-message {
+    color: red;
+    font-weight: bold;
 }
