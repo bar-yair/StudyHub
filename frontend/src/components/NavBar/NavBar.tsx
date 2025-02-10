@@ -23,6 +23,10 @@ interface Course {
   imageUrl: string;
 }
 
+interface CheckAuthResponse {
+  isAuthenticated: boolean;
+}
+
 const NavBar: React.FC = () => {
   const navigate = useNavigate();
   const [auth, setAuth] = React.useState(true);
@@ -41,7 +45,6 @@ const NavBar: React.FC = () => {
     try {
       const response = await axios.get('http://localhost:5000/api/courses/returnCourses');
       const coursesArr: Course[] = response.data as Course[];
-      console.log(coursesArr);
       setCourses(coursesArr);
     } catch (error) {
       console.error('Error fetching courses:', error);
@@ -51,21 +54,26 @@ const NavBar: React.FC = () => {
   fetchCourses();
  },[]);
 
- const handleCourseClick = (id: any) => { //route to dynamic path
-  navigate(`/courses/${id}`); 
-  setMenuAnchorEl(null);
- };
+ const handleCourseClick = async (id: any) => {
+  try {
+    // שולח בקשה לבדוק אם המשתמש מחובר (מקבל את ה-cookie מהדפדפן)
+    const response = await axios.get<CheckAuthResponse>('http://localhost:5000/api/users/check-auth', { withCredentials: true });
+    console.log(response.data);
+    if (response.data.isAuthenticated) {
+      // אם המשתמש מחובר, נווט לדף הקורס
+      navigate(`/courses/${id}`);
+      setMenuAnchorEl(null);
+    } else {
+      // אם המשתמש לא מחובר, הצג הודעה
+      setMenuAnchorEl(null);
+      alert("עליך להתחבר כדי לצפות בקורס.");
+    }
+  } catch (error) {
+    console.error("Authentication check failed:", error);
+    alert("עליך להתחבר כדי לצפות בקורס.");
+  }
+};
 
-
- const handleSignOut = () =>{
-    localStorage.setItem("token", "");
-    localStorage.setItem("username", "");
-    localStorage.setItem("firstName", "");
-    localStorage.setItem("lastName", "");
-    navigate("/");
-    setAnchorEl(null);
-
- }
 
   const handleHomeNav = () => {
     navigate('/home');
@@ -89,6 +97,12 @@ const NavBar: React.FC = () => {
 
   const handleCoursesClose = () => {
     setMenuAnchorEl(null);
+  };
+
+  const handleSignOut = () => {
+     axios.get('http://localhost:5000/api/users/logout', { withCredentials: true });
+     navigate('/');
+     setAnchorEl(null);
   };
 
   return (

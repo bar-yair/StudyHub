@@ -1,20 +1,26 @@
-import { Request, Response, NextFunction } from "express";
-import jwt from "jsonwebtoken";
+import { Request, Response, NextFunction } from 'express';
+import jwt from 'jsonwebtoken';
+import dotenv from 'dotenv';
 
-const JWT_SECRET = process.env.JWT_SECRET || "myTestSecretKey";
+dotenv.config();
 
-export const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
-  const token = req.header("Authorization")?.split(" ")[1];
+const JWT_SECRET = process.env.JWT_SECRET || 'myTestSecretKey';
 
-  if (!token) {
-    return res.status(401).json({ error: "Unauthorized: No token provided" });
-  }
+const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
+    const token = req.cookies.token; // קבלת ה-Cookie
+    if (!token) {
+        res.status(401).json({ error: 'Unauthorized - No token provided' });
+        return;
+    }
 
-  try {
-    const decoded = jwt.verify(token, JWT_SECRET);
-    req.user = decoded; // הוספת המשתמש המבוטל לבקשה
-    next();
-  } catch (error) {
-    return res.status(403).json({ error: "Forbidden: Invalid or expired token" });
-  }
+    try {
+        const decoded = jwt.verify(token, JWT_SECRET) as { id: string; username: string };
+        (req as any).user = decoded; // הוספת המשתמש המבוטל לאובייקט הבקשה
+        next();
+    } catch (err) {
+        res.status(401).json({ error: 'Unauthorized - Invalid token' });
+        return;
+    }
 };
+
+export default authMiddleware;

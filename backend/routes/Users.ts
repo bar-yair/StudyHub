@@ -4,8 +4,11 @@ import User, { IUser } from '../models/User';
 import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
 import process from 'process';
+import authMiddleware from '../middleware/authMiddleware';
+import cookieParser from 'cookie-parser';
 
 dotenv.config();
+cookieParser();
 
 const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET || 'myTestSecretKey';
@@ -77,16 +80,31 @@ router.post('/login', async (req: Request, res: Response): Promise<void> => {
     }
 
     // Generate a JWT token
-    const token = jwt.sign({ id: user._id, username: user.username }, JWT_SECRET, {
-      expiresIn: '1h',
+    const token = jwt.sign({ id: user._id, username: user.username }, JWT_SECRET); 
+
+    // Set token in cookie and send response
+    res.cookie('token', token, { httpOnly: true, secure: true, sameSite: 'none'}).json({ 
+      message: 'Login successful', 
+      token, 
+      firstName: user.firstName, 
+      lastName: user.lastName, 
+      username: user.username 
     });
 
-    // Login successful - send the token (including firstName and lastName)
-    res.json({ message: 'Login successful', token, firstName: user.firstName, lastName: user.lastName, username: user.username });
+
   } catch (err: any) {
     console.error(err.message);
     res.status(500).send('Server Error');
   }
+});
+
+router.get('/check-auth', authMiddleware, (req: Request, res: Response) => {
+  const user = (req as any).user;
+  res.json({isAuthenticated: true, message: 'User is authenticated', user});
+});
+
+router.get('/logout', (req: Request, res: Response) => {
+  res.clearCookie('token').json({message: 'Logged out successfully'});
 });
 
 export default router;

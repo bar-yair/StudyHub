@@ -32,6 +32,8 @@ const chatupload: React.FC = () => {
     fetchCourse();
   },[courseId]);
 
+  
+
   // State for chat messages
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState<string[]>([]);
@@ -42,12 +44,27 @@ const chatupload: React.FC = () => {
   const [fileName, setFileName] = useState<string>('No file chosen');
 
   // Handle sending a chat message
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
     if (message.trim()) {
-      setMessages([...messages, message]);
-      setMessage('');
+      try {
+        // שלח את ההודעה לשרת
+        await axios.post('http://localhost:5000/api/messages/sendMessage', {
+          courseId, // הקורס שאליו ההודעה שייכת
+          content: message // תוכן ההודעה
+        }, {withCredentials: true}); // כדי שהטוקן ישלח עם הבקשה
+
+        // אם ההודעה נשלחה בהצלחה, הוסף אותה למערכת ההודעות
+        setMessages([...messages, message]);
+        setMessage(''); // נקה את שדה ההודעה אחרי שליחה
+
+        // אפשר להוסיף טיפול בתגובה מהשרת כאן אם רוצים
+
+      } catch (error) {
+        console.error('Error sending message:', error);
+      }
     }
   };
+
 
   // Handle file selection
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {

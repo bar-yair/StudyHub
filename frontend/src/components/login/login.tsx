@@ -26,7 +26,7 @@ const Login: React.FC = () => {
       const response = await axios.post('http://localhost:5000/api/users/login', {
         username,
         password,
-      });
+      }, {withCredentials: true});
       const userData = response.data as User;
       localStorage.setItem("token", userData.token);
       localStorage.setItem("username", userData.username);
