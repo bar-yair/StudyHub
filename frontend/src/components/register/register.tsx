@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './Register.css';
+import { useNavigate, Router, Route, Routes } from 'react-router-dom';
 
 export const Register: React.FC = () => {
     const [month, setMonth] = useState<string>('Jan');
     const [year, setYear] = useState<string>('2024');
     const [days, setDays] = useState<string[]>([]);
+    const [successMessage, setSuccessMessage] = useState<string | null>(null);
+    const [errorMessage, setErrorMessage] = useState<string | null>(null);
   
     const daysInMonth = (month: string, year: string) => {
       const monthIndex = new Date(`01 ${month} ${year}`).getMonth(); // Corrected this line
@@ -53,11 +56,27 @@ export const Register: React.FC = () => {
   
       // Handle successful registration (e.g., redirect to login page)
       console.log('Registration successful:', response.data);
+      setSuccessMessage('You have registered successfully!');
+      setErrorMessage("");
+      setTimeout(() => {
+      navigate("/login");
+      },2000);
   
-    } catch (error) {
-      console.error('Registration error:', error);
+    } catch (error: any) {
+      if(error.response && error.response.status === 400) {
+        setErrorMessage(error.response.data.error);
+      }
+      else {
+        setErrorMessage('An unexpected error occured. Please try again.');
+      }
       // Handle registration errors (e.g., display error message to user)
     }
+  };
+
+  const navigate = useNavigate();
+
+  const handleLoginClick = () => {
+    navigate('/login');// זה יעביר אותך לדף ה-login
   };
 
   return (
@@ -144,7 +163,12 @@ export const Register: React.FC = () => {
           </button>
         </form>
 
-        <p className="already-account">Already have an account?</p>
+        {successMessage && <p className="success-message">{successMessage}</p>}
+        {errorMessage && <p className="error-message">{errorMessage}</p>}
+
+        <p className="already-account" onClick={handleLoginClick}>
+                Already have an account?
+        </p>
       </div>
     </div>
   );
