@@ -124,4 +124,38 @@ router.get('/profile', authMiddleware, async (req: Request, res: Response): Prom
   }
 });
 
+// Get all users - modified to match courses route style
+router.get('/returnUsers', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const users = await User.find().select('-password[');
+    console.log('Found users:', users);
+    if (!users) {
+      console.log('No users found in database');
+      res.status(404).send('No users found');
+      return;
+    }
+    console.log(`Sending ${users.length} users`);
+    res.send(users);
+  } catch (err: any) {
+    console.error('Error in returnUsers:', err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
+// Delete user - following the same pattern as delete course
+router.delete('/deleteUser/:userId', async (req: Request, res: Response): Promise<void> => {
+  const { userId } = req.params;
+  try {
+    const user = await User.findByIdAndDelete(userId);
+    if (!user) {
+      res.status(404).json({ error: 'User not found' });
+      return;
+    }
+    res.json({ message: 'User deleted successfully' });
+  } catch (err: any) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
 export default router;
