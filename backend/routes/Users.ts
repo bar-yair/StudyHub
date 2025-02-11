@@ -107,7 +107,6 @@ router.get('/logout', (req: Request, res: Response) => {
   res.clearCookie('token').json({message: 'Logged out successfully'});
 });
 
-
 router.get('/profile', async (req: Request, res: Response): Promise<void> => {
   try {
     const token = req.cookies.token;
@@ -116,7 +115,7 @@ router.get('/profile', async (req: Request, res: Response): Promise<void> => {
       return;
     }
     const decoded: any = jwt.verify(token, JWT_SECRET);
-    console.log('Fetching profile for user:',decoded.username);
+    console.log('Fetching profile for user:', decoded.username);
     const dbUser = await User.findById(decoded.id);
     console.log('User:', dbUser);
     if (!dbUser) {
@@ -137,7 +136,7 @@ router.get('/profile', async (req: Request, res: Response): Promise<void> => {
 // Get all users - modified to match courses route style
 router.get('/returnUsers', async (req: Request, res: Response): Promise<void> => {
   try {
-    const users = await User.find().select('-password[');
+    const users = await User.find().select('-password');
     console.log('Found users:', users);
     if (!users) {
       console.log('No users found in database');
