@@ -21,10 +21,10 @@ const AdminDashboard: React.FC = () => {
   const [courses, setCourses] = useState<Course[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [newCourse, setNewCourse] = useState<Partial<Course>>({
-    
+    courseId: 0,
     title: '',
     description: '',
-    imageUrl: ''
+    imageUrl: '/homepagepics/general.jpg'
   });
   const [activeTab, setActiveTab] = useState<'courses' | 'users'>('courses');
 
@@ -48,9 +48,10 @@ const AdminDashboard: React.FC = () => {
   const handleAddCourse = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await axios.post('http://localhost:5000/api/courses/addCourse', newCourse);
+      const courseToAdd = { ...newCourse, imageUrl: '/homepagepics/general.jpg' };
+      await axios.post('http://localhost:5000/api/courses/addCourse', courseToAdd);
       fetchCourses();
-      setNewCourse({ courseId: 0, title: '', description: '', imageUrl: '' });
+      setNewCourse({ courseId: 0, title: '', description: '', imageUrl: '/homepagepics/general.jpg' });
     } catch (error) {
       console.error('Error adding course:', error);
     }
@@ -119,13 +120,6 @@ const AdminDashboard: React.FC = () => {
               placeholder="Course Description"
               value={newCourse.description}
               onChange={(e) => setNewCourse({...newCourse, description: e.target.value})}
-              required
-            />
-            <input
-              type="text"
-              placeholder="image"
-              value={newCourse.imageUrl}
-              onChange={(e) => setNewCourse({...newCourse, imageUrl: e.target.value})}
               required
             />
             <button type="submit">Add Course</button>

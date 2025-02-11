@@ -12,12 +12,12 @@ import FormGroup from '@mui/material/FormGroup';
 import MenuItem from '@mui/material/MenuItem';
 import Menu from '@mui/material/Menu';
 import { useNavigate } from 'react-router-dom';
-import { useEffect,useState } from 'react';
+import { useEffect, useState } from 'react';
 import axios from 'axios';
-import './NavBar.css'
+import './NavBar.css';
 
 interface Course {
-  courseId: number,
+  courseId: number;
   title: string;
   description: string;
   imageUrl: string;
@@ -40,44 +40,39 @@ const NavBar: React.FC = () => {
   const [courses, setCourses] = useState<Course[]>([]);
 
   useEffect(() => { 
-  
-  const fetchCourses = async () => {
+    const fetchCourses = async () => {
+      try {
+        const response = await axios.get('http://localhost:5000/api/courses/returnCourses');
+        const coursesArr: Course[] = response.data as Course[];
+        setCourses(coursesArr);
+      } catch (error) {
+        console.error('Error fetching courses:', error);
+      }
+    };
+
+    fetchCourses();
+  }, []);
+
+  const handleCourseClick = async (id: any) => {
     try {
-      const response = await axios.get('http://localhost:5000/api/courses/returnCourses');
-      const coursesArr: Course[] = response.data as Course[];
-      setCourses(coursesArr);
+      const response = await axios.get<CheckAuthResponse>('http://localhost:5000/api/users/check-auth', { withCredentials: true });
+      console.log(response.data);
+      if (response.data.isAuthenticated) {
+        navigate(`/courses/${id}`);
+        setMenuAnchorEl(null);
+      } else {
+        setMenuAnchorEl(null);
+        alert("עליך להתחבר כדי לצפות בקורס.");
+      }
     } catch (error) {
-      console.error('Error fetching courses:', error);
+      console.error("Authentication check failed:", error);
+      alert("עליך להתחבר כדי לצפות בקורס.");
     }
   };
 
-  fetchCourses();
- },[]);
-
- const handleCourseClick = async (id: any) => {
-  try {
-    // שולח בקשה לבדוק אם המשתמש מחובר (מקבל את ה-cookie מהדפדפן)
-    const response = await axios.get<CheckAuthResponse>('http://localhost:5000/api/users/check-auth', { withCredentials: true });
-    console.log(response.data);
-    if (response.data.isAuthenticated) {
-      // אם המשתמש מחובר, נווט לדף הקורס
-      navigate(`/courses/${id}`);
-      setMenuAnchorEl(null);
-    } else {
-      // אם המשתמש לא מחובר, הצג הודעה
-      setMenuAnchorEl(null);
-      alert("עליך להתחבר כדי לצפות בקורס.");
-    }
-  } catch (error) {
-    console.error("Authentication check failed:", error);
-    alert("עליך להתחבר כדי לצפות בקורס.");
-  }
-};
-
-
   const handleHomeNav = () => {
     navigate('/home');
-  }
+  };
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setAuth(event.target.checked);
@@ -91,8 +86,11 @@ const NavBar: React.FC = () => {
     setMenuAnchorEl(event.currentTarget);
   };
 
-  const handleAccClose = () => {
+  const handleAccClose = (route?: string) => {
     setAnchorEl(null);
+    if (route) {
+      navigate(route);
+    }
   };
 
   const handleCoursesClose = () => {
@@ -100,14 +98,13 @@ const NavBar: React.FC = () => {
   };
 
   const handleSignOut = () => {
-     axios.get('http://localhost:5000/api/users/logout', { withCredentials: true });
-     navigate('/');
-     setAnchorEl(null);
+    axios.get('http://localhost:5000/api/users/logout', { withCredentials: true });
+    navigate('/');
+    setAnchorEl(null);
   };
 
   return (
     <div id="navbar-container" style={{ width: '100%' }}>
-
       <Box sx={{ flexGrow: 1, width: '100%' }}>
         <AppBar position="static" sx={{ width: '100%' }}>
           <Toolbar className='toolbar-background'>
@@ -117,33 +114,32 @@ const NavBar: React.FC = () => {
               edge="start"
               color="inherit"
               aria-label="menu"
-              sx={{ mr: 2, ml:2 }}
+              sx={{ mr: 2, ml: 2 }}
               onClick={handleCoursesMenu}
-              //className='toolbar-item'
             >
-            Courses
+              Courses
             </IconButton>
             <Menu
-                  id="menu-appbar"
-                  anchorEl={menuAnchorEl}
-                  anchorOrigin={{
-                    vertical: 'top',
-                    horizontal: 'right',
-                  }}
-                  keepMounted
-                  transformOrigin={{
-                    vertical: 'top',
-                    horizontal: 'right',
-                  }}
-                  open={Boolean(menuAnchorEl)}
-                  onClose={handleCoursesClose}
-                >
-                {courses.length > 0 ? (
-                  courses.map((course) => 
-                    <MenuItem key={course.courseId} onClick={() => handleCourseClick(course.courseId)}>{course.title}</MenuItem>
-                  )) : (
-                    <MenuItem>No courses to show</MenuItem>
-                  )}
+              id="menu-appbar"
+              anchorEl={menuAnchorEl}
+              anchorOrigin={{
+                vertical: 'top',
+                horizontal: 'right',
+              }}
+              keepMounted
+              transformOrigin={{
+                vertical: 'top',
+                horizontal: 'right',
+              }}
+              open={Boolean(menuAnchorEl)}
+              onClose={handleCoursesClose}
+            >
+              {courses.length > 0 ? (
+                courses.map((course) => 
+                  <MenuItem key={course.courseId} onClick={() => handleCourseClick(course.courseId)}>{course.title}</MenuItem>
+                )) : (
+                  <MenuItem>No courses to show</MenuItem>
+                )}
             </Menu>
             <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
             </Typography>
@@ -157,7 +153,7 @@ const NavBar: React.FC = () => {
                   onClick={handleAccMenu}
                   color="inherit"
                 >
-                <AccountCircle />
+                  <AccountCircle />
                 </IconButton>
                 <Menu
                   id="menu-appbar"
@@ -172,19 +168,18 @@ const NavBar: React.FC = () => {
                     horizontal: 'right',
                   }}
                   open={Boolean(anchorEl)}
-                  onClose={handleAccClose}
-                >                  
-                    <MenuItem onClick={handleAccClose}>Profile</MenuItem>
-                    <MenuItem onClick={handleAccClose}>My account</MenuItem>
-                    <MenuItem onClick={handleSignOut}>Sign out</MenuItem>
+                  onClose={() => handleAccClose()}
+                >
+                  <MenuItem onClick={() => handleAccClose('/profile')}>Profile</MenuItem>
+                  <MenuItem onClick={handleSignOut}>Sign out</MenuItem>
                 </Menu>
               </div>
             )}
           </Toolbar>
         </AppBar>
       </Box>
-      
     </div>
-)}
+  );
+};
 
 export default NavBar;
