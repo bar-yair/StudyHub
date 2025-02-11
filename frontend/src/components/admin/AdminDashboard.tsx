@@ -21,17 +21,17 @@ const AdminDashboard: React.FC = () => {
   const [courses, setCourses] = useState<Course[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [newCourse, setNewCourse] = useState<Partial<Course>>({
-    
+    courseId: 0,
     title: '',
     description: '',
-    imageUrl: ''
+    imageUrl: '/homepagepics/general.jpg'
   });
   const [activeTab, setActiveTab] = useState<'courses' | 'users'>('courses');
 
   // Fetch courses and users
   useEffect(() => {
     fetchCourses();
-    //fetchUsers();
+    fetchUsers();
   }, []);
 
   const fetchCourses = async () => {
@@ -45,12 +45,25 @@ const AdminDashboard: React.FC = () => {
     }
   };
 
+  const fetchUsers = async () => {
+    try {
+      console.log('Fetching users...');
+      const response = await axios.get('http://localhost:5000/api/users/returnUsers');
+      const usersArr: User[] = response.data as User[];
+      console.log(usersArr);
+      setUsers(usersArr);
+    } catch (error) {
+      console.error('Error fetching users:', error);
+    }
+  };
+
   const handleAddCourse = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await axios.post('http://localhost:5000/api/courses/addCourse', newCourse);
+      const courseToAdd = { ...newCourse, imageUrl: '/homepagepics/general.jpg' };
+      await axios.post('http://localhost:5000/api/courses/addCourse', courseToAdd);
       fetchCourses();
-      setNewCourse({ courseId: 0, title: '', description: '', imageUrl: '' });
+      setNewCourse({ courseId: 0, title: '', description: '', imageUrl: '/homepagepics/general.jpg' });
     } catch (error) {
       console.error('Error adding course:', error);
     }
@@ -70,8 +83,8 @@ const AdminDashboard: React.FC = () => {
   const handleDeleteUser = async (userId: string) => {
     if (window.confirm('Are you sure you want to delete this user?')) {
       try {
-        await axios.delete(`http://localhost:5000/api/users/${userId}`);
-        //fetchUsers();
+        await axios.delete(`http://localhost:5000/api/users/deleteUser/${userId}`);
+        fetchUsers();
       } catch (error) {
         console.error('Error deleting user:', error);
       }
@@ -121,13 +134,6 @@ const AdminDashboard: React.FC = () => {
               onChange={(e) => setNewCourse({...newCourse, description: e.target.value})}
               required
             />
-            <input
-              type="text"
-              placeholder="image"
-              value={newCourse.imageUrl}
-              onChange={(e) => setNewCourse({...newCourse, imageUrl: e.target.value})}
-              required
-            />
             <button type="submit">Add Course</button>
           </form>
 
@@ -155,21 +161,25 @@ const AdminDashboard: React.FC = () => {
         <div className="users-section">
           <h2>User Management</h2>
           <div className="users-list">
-            {users.map((user) => (
-              <div key={user._id} className="user-item">
-                <div className="user-info">
-                  <h3>{user.username}</h3>
-                  <p>{user.email}</p>
-                  <p>{user.firstName} {user.lastName}</p>
+            {users && users.length > 0 ? (
+              users.map((user) => (
+                <div key={user._id} className="user-item">
+                  <div className="user-info">
+                    <h3>Username: {user.username}</h3>
+                    <p>Email: {user.email}</p>
+                    <p>Name: {user.firstName} {user.lastName}</p>
+                  </div>
+                  <button 
+                    onClick={() => handleDeleteUser(user._id)}
+                    className="delete-button"
+                  >
+                    Delete
+                  </button>
                 </div>
-                <button 
-                  onClick={() => handleDeleteUser(user._id)}
-                  className="delete-button"
-                >
-                  Delete
-                </button>
-              </div>
-            ))}
+              ))
+            ) : (
+              <p>No users found</p>
+            )}
           </div>
         </div>
       )}

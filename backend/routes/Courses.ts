@@ -7,7 +7,6 @@ import process from 'process';
 import { IMessage } from '../models/Message';
 import Course, { ICourse } from '../models/Course';
 
-
 const router = express.Router();
 
 interface AddCourseRequestBody {
