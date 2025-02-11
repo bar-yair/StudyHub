@@ -1,7 +1,39 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
+import axios from 'axios';
 import './chatupload.css'; // CSS file for the merged component
+//import { useNavigate } from 'react-router-dom';
+
+interface Course {
+  courseId: number,
+  title: string;
+  description: string;
+  imageUrl: string;
+}
 
 const chatupload: React.FC = () => {
+  // Call course from db
+  const [course, setCourse] = useState<Course>();
+
+  const { courseId } = useParams();
+
+  useEffect(() => { 
+  
+  const fetchCourse = async () => {
+    try {
+      const response = await axios.get<Course>(`http://localhost:5000/api/courses/returnCourse/${courseId}`);
+      const course: Course = response.data as Course;
+      setCourse(course);
+    } catch (error) {
+      console.error('Error fetching course:', error);
+    }
+  };
+
+    fetchCourse();
+  },[courseId]);
+
+  
+
   // State for chat messages
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState<string[]>([]);
@@ -12,12 +44,27 @@ const chatupload: React.FC = () => {
   const [fileName, setFileName] = useState<string>('No file chosen');
 
   // Handle sending a chat message
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
     if (message.trim()) {
-      setMessages([...messages, message]);
-      setMessage('');
+      try {
+        // שלח את ההודעה לשרת
+        await axios.post('http://localhost:5000/api/messages/sendMessage', {
+          courseId, // הקורס שאליו ההודעה שייכת
+          content: message // תוכן ההודעה
+        }, {withCredentials: true}); // כדי שהטוקן ישלח עם הבקשה
+
+        // אם ההודעה נשלחה בהצלחה, הוסף אותה למערכת ההודעות
+        setMessages([...messages, message]);
+        setMessage(''); // נקה את שדה ההודעה אחרי שליחה
+
+        // אפשר להוסיף טיפול בתגובה מהשרת כאן אם רוצים
+
+      } catch (error) {
+        console.error('Error sending message:', error);
+      }
     }
   };
+
 
   // Handle file selection
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -63,7 +110,7 @@ const chatupload: React.FC = () => {
       <div className="merge-container">
         {/* Chat Section */}
         <div className="chat-section">
-          <h2>StudyHub Chat</h2>
+          <h2>{course ? `${course.title} Course Chat` : 'Loading Course'}</h2>
           <div className="chat-box">
             {messages.map((msg, index) => (
               <div key={index} className="message">{msg}</div>

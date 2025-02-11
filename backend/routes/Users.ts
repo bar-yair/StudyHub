@@ -4,8 +4,11 @@ import User, { IUser } from '../models/User';
 import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
 import process from 'process';
+import authMiddleware from '../middleware/authMiddleware';
+import cookieParser from 'cookie-parser';
 
 dotenv.config();
+cookieParser();
 
 const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET || 'myTestSecretKey';
@@ -77,12 +80,78 @@ router.post('/login', async (req: Request, res: Response): Promise<void> => {
     }
 
     // Generate a JWT token
-    const token = jwt.sign({ id: user._id, username: user.username }, JWT_SECRET, {
-      expiresIn: '1h',
+    const token = jwt.sign({ id: user._id, username: user.username }, JWT_SECRET); 
+
+    // Set token in cookie and send response
+    res.cookie('token', token, { httpOnly: true, secure: true, sameSite: 'none'}).json({ 
+      message: 'Login successful', 
+      token, 
+      firstName: user.firstName, 
+      lastName: user.lastName, 
+      username: user.username 
     });
 
-    // Login successful - send the token (including firstName and lastName)
-    res.json({ message: 'Login successful', token, firstName: user.firstName, lastName: user.lastName });
+
+  } catch (err: any) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
+router.get('/check-auth', authMiddleware, (req: Request, res: Response) => {
+  const user = (req as any).user;
+  res.json({isAuthenticated: true, message: 'User is authenticated', user});
+});
+
+router.get('/logout', (req: Request, res: Response) => {
+  res.clearCookie('token').json({message: 'Logged out successfully'});
+});
+router.get('/profile', authMiddleware, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const userId = (req as any).user.id;
+    console.log('Fetching profile for user ID:', userId);
+    const user = await User.findById(userId).select('-password');
+    if (!user) {
+      console.log('User not found');
+      res.status(404).json({ error: 'User not found' });
+      return;
+    }
+    console.log('User profile:', user);
+    res.json(user);
+  } catch (err: any) {
+    console.error('Server Error:', err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
+// Get all users - modified to match courses route style
+router.get('/returnUsers', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const users = await User.find().select('-password[');
+    console.log('Found users:', users);
+    if (!users) {
+      console.log('No users found in database');
+      res.status(404).send('No users found');
+      return;
+    }
+    console.log(`Sending ${users.length} users`);
+    res.send(users);
+  } catch (err: any) {
+    console.error('Error in returnUsers:', err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
+// Delete user - following the same pattern as delete course
+router.delete('/deleteUser/:userId', async (req: Request, res: Response): Promise<void> => {
+  const { userId } = req.params;
+  try {
+    const user = await User.findByIdAndDelete(userId);
+    if (!user) {
+      res.status(404).json({ error: 'User not found' });
+      return;
+    }
+    res.json({ message: 'User deleted successfully' });
   } catch (err: any) {
     console.error(err.message);
     res.status(500).send('Server Error');
