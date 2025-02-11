@@ -11,7 +11,8 @@ import Home from './components/home/home'
 import Login from './components/login/login'
 import Chatupload from './components/chatupload/chatupload'
 import Register from './components/register/register'
-
+import AdminDashboard from './components/admin/AdminDashboard';
+import Profile from './components/profile/profile';
 interface Course {
   courseId: number,
   title: string;
@@ -48,6 +49,8 @@ function App() {
          <Route path="/home" element={<Home />}></Route>
          <Route path="/register" element={<Register />}></Route>
          <Route path="/chatupload" element={<Chatupload />}></Route>
+         <Route path="/admin" element={<AdminDashboard />}></Route>
+         <Route path="/profile" element={<Profile />}></Route>
          {
           courses.length > 0 ? (
             courses.map((course) => (

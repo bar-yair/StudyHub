@@ -69,4 +69,18 @@ router.post('/addCourse', async (req: Request, res: Response): Promise<void> => 
     }
   });
 
+  router.delete('/deleteCourse/:courseId', async (req: Request, res: Response): Promise<void> => {
+    const { courseId } = req.params;
+    try {
+      const course = await Course.findOneAndDelete({ courseId: parseInt(courseId, 10) });
+      if (!course) {
+        res.status(404).json({ error: 'Course not found' });
+        return;
+      }
+      res.json({ message: 'Course deleted successfully' });
+    } catch (err: any) {
+      console.error(err.message);
+      res.status(500).send('Server Error');
+    }
+  });
   export default router;
