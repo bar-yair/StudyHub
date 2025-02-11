@@ -83,4 +83,27 @@ router.post('/addCourse', async (req: Request, res: Response): Promise<void> => 
       res.status(500).send('Server Error');
     }
   });
+
+
+  router.get('/getMessages/:courseId', async (req: Request, res: Response) => {
+    try {
+      const { courseId } = req.params;
+  
+      // מציאת הקורס עם ההודעות שלו
+      const course = await Course.findOne({ courseId }).populate('messages');
+
+      if (!course) {
+        res.status(404).json({ error: 'Course not found' });
+        return;
+      }
+      console.log(course.messages);
+      res.json(course.messages); // החזר את ההודעות
+
+    } catch (error) {
+      console.error('Error fetching messages:', error);
+      res.status(500).json({ error: 'Server error' });
+    }
+  });
+  
+
   export default router;

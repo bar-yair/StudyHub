@@ -146,3 +146,7 @@
   .upload-container{
     align-self: self-end;
   }
+
+  .designMsg {
+    font: bold;
+  }

@@ -17,7 +17,7 @@ const Profile: React.FC = () => {
     const fetchUserProfile = async () => {
       try {
         console.log('Fetching user profile...');
-        const response = await axios.get<UserProfile>('/api/profile', { withCredentials: true });
+        const response = await axios.get<UserProfile>('/api/users/profile', { withCredentials: true });
         console.log('User profile fetched:', response.data);
         setUserProfile(response.data);
       } catch (error) {
