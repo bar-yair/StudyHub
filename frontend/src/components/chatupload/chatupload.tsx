@@ -11,6 +11,12 @@ interface Course {
   imageUrl: string;
 }
 
+interface Message {
+  content: string;
+  sender: string;
+  timestamp: string;
+}
+
 const chatupload: React.FC = () => {
   // Call course from db
   const [course, setCourse] = useState<Course>();
@@ -18,7 +24,28 @@ const chatupload: React.FC = () => {
   const { courseId } = useParams();
 
   useEffect(() => { 
+    const fetchCourseAndMessages = async () => {
+      try {
+        // שליפת פרטי הקורס
+        const responseCourse = await axios.get<Course>(`http://localhost:5000/api/courses/returnCourse/${courseId}`);
+        setCourse(responseCourse.data);
   
+        // שליפת הודעות הצ'אט של הקורס
+        const responseMessages = await axios.get<Message[]>(`http://localhost:5000/api/courses/getMessages/${courseId}`);
+        responseMessages.data.forEach((msg) => {
+           console.log(msg); 
+           console.log(msg.timestamp);
+        });
+        setDBMessages(responseMessages.data); // עדכון מצב ההודעות
+      } catch (error) {
+        console.error('Error fetching course or messages:', error);
+      }
+    };
+  
+  fetchCourseAndMessages();
+  }, [courseId]);
+  
+  useEffect(() => {
   const fetchCourse = async () => {
     try {
       const response = await axios.get<Course>(`http://localhost:5000/api/courses/returnCourse/${courseId}`);
@@ -37,6 +64,8 @@ const chatupload: React.FC = () => {
   // State for chat messages
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState<string[]>([]);
+  const [DBmessages, setDBMessages] = useState<Message[]>([]);
+
 
   // State for file uploads
   const [uploadedFiles, setUploadedFiles] = useState<{ fileName: string; fileUrl: string }[]>([]);
@@ -53,9 +82,7 @@ const chatupload: React.FC = () => {
           content: message // תוכן ההודעה
         }, {withCredentials: true}); // כדי שהטוקן ישלח עם הבקשה
 
-        // אם ההודעה נשלחה בהצלחה, הוסף אותה למערכת ההודעות
-        setMessages([...messages, message]);
-        setMessage(''); // נקה את שדה ההודעה אחרי שליחה
+        window.location.reload();
 
         // אפשר להוסיף טיפול בתגובה מהשרת כאן אם רוצים
 
@@ -112,6 +139,9 @@ const chatupload: React.FC = () => {
         <div className="chat-section">
           <h2>{course ? `${course.title} Course Chat` : 'Loading Course'}</h2>
           <div className="chat-box">
+            {DBmessages.map((msg, index) => ( 
+              <div key={index} className="message"><strong>{msg.sender} at {msg.timestamp} :</strong> <br></br>{msg.content}</div> 
+            ))}  
             {messages.map((msg, index) => (
               <div key={index} className="message">{msg}</div>
             ))}

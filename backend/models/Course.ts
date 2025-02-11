@@ -14,7 +14,7 @@ const courseSchema: Schema<ICourse> = new mongoose.Schema({
   courseId: { type: Number, required: true },
   description: { type: String, required: true },
   imageUrl: { type: String, required: true },
-  messages: { type: [Schema.Types.ObjectId] } //required: true },
+  messages: [{ type: Schema.Types.ObjectId, ref: 'Message' }] //required: true },
 });
 
 const Course: Model<ICourse> = mongoose.model<ICourse>(

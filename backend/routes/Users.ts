@@ -106,18 +106,28 @@ router.get('/check-auth', authMiddleware, (req: Request, res: Response) => {
 router.get('/logout', (req: Request, res: Response) => {
   res.clearCookie('token').json({message: 'Logged out successfully'});
 });
-router.get('/profile', authMiddleware, async (req: Request, res: Response): Promise<void> => {
+
+
+router.get('/profile', async (req: Request, res: Response): Promise<void> => {
   try {
-    const userId = (req as any).user.id;
-    console.log('Fetching profile for user ID:', userId);
-    const user = await User.findById(userId).select('-password');
-    if (!user) {
+    const token = req.cookies.token;
+    if (!token) {
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
+    }
+    const decoded: any = jwt.verify(token, JWT_SECRET);
+    console.log('Fetching profile for user:',decoded.username);
+    const dbUser = await User.findById(decoded.id);
+    console.log('User:', dbUser);
+    if (!dbUser) {
       console.log('User not found');
       res.status(404).json({ error: 'User not found' });
       return;
     }
-    console.log('User profile:', user);
-    res.json(user);
+
+    console.log('User profile:', dbUser);
+    res.json(dbUser);
+
   } catch (err: any) {
     console.error('Server Error:', err.message);
     res.status(500).send('Server Error');

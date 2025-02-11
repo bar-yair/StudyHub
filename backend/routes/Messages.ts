@@ -44,9 +44,18 @@ router.post('/sendMessage', async (req: Request, res: Response): Promise<void> =
       return;
     }
 
+    const DateTmeNow = new Date(Date.now());
+
     // צור הודעה חדשה
     const newMessage = new Message({
-      timestamp: new Date(),
+      timestamp: DateTmeNow.toLocaleDateString('en-US', {
+              day: '2-digit',   // מציג את היום עם 2 ספרות
+              month: 'short',   // מציג את החודש בקצרה, לדוג' "Feb"
+              hour: '2-digit',  // מציג את השעה עם 2 ספרות
+              minute: '2-digit', // מציג את הדקה עם 2 ספרות
+              second: '2-digit', // מציג את השנייה עם 2 ספרות
+              hour12: false       // מציג את השעה בפורמט 12 שעות (AM/PM)
+            }),
       sender: user.username,
       content,
     });

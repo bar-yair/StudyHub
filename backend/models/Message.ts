@@ -2,13 +2,13 @@ import mongoose, { Document, Schema } from 'mongoose';
 import { IUser } from './User';
 
 interface IMessage extends Document {
-    timestamp: Date;
+    timestamp: string;
     sender: string;
     content: string;
 }
 
 const MessageSchema: Schema = new Schema({
-    timestamp: { type: Date, default: Date.now, required: true},
+    timestamp: { type: String, required: true},
     sender: { type: String, required: true},
     content: { type: String, required: true}
 });
