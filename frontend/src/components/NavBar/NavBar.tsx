@@ -4,20 +4,17 @@ import Box from '@mui/material/Box';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
-import MenuIcon from '@mui/icons-material/Menu';
 import AccountCircle from '@mui/icons-material/AccountCircle';
-import Switch from '@mui/material/Switch';
-import FormControlLabel from '@mui/material/FormControlLabel';
-import FormGroup from '@mui/material/FormGroup';
 import MenuItem from '@mui/material/MenuItem';
 import Menu from '@mui/material/Menu';
 import { useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
+import AxiosError from 'axios-error'
 import './NavBar.css';
 
 interface Course {
-  courseId: number;
+  courseId: string;
   title: string;
   description: string;
   imageUrl: string;
@@ -25,57 +22,99 @@ interface Course {
 
 interface CheckAuthResponse {
   isAuthenticated: boolean;
+  message: string;
+  user: any;
 }
 
 const NavBar: React.FC = () => {
   const navigate = useNavigate();
-  const [auth, setAuth] = React.useState(true);
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const [menuAnchorEl, setMenuAnchorEl] = React.useState<null | HTMLElement>(null);
-  //local storage items
-  const username = localStorage.getItem("username");
-  const firstName = localStorage.getItem("firstName");
-  const lastName = localStorage.getItem("lastName");
-  const token = localStorage.getItem("token");
   const [courses, setCourses] = useState<Course[]>([]);
 
   useEffect(() => { 
     const fetchCourses = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/api/courses/returnCourses');
-        const coursesArr: Course[] = response.data as Course[];
+        const response = await axios.get<Course[]>('https://0uipl61dfa.execute-api.us-east-1.amazonaws.com/dev/returnCourses', {
+          headers: {
+            'Content-Type': 'application/json' // Good practice
+          }
+        });
+
+        const coursesArr = response.data; // No need for type assertion here
+
+        console.log("Courses received:", coursesArr);
         setCourses(coursesArr);
+
       } catch (error) {
         console.error('Error fetching courses:', error);
+  
+        if (error instanceof AxiosError) {  // Type guard for Axios errors
+          console.error("Axios Error Details:", error.response?.data, error.response?.status, error.response?.headers);
+          console.error("Axios Request:", error.request);
+          console.error("Axios Message:", error.message);
+        } else if (error instanceof Error) { // Type guard for general Error objects
+          console.error("General Error:", error.message);
+        } else {
+          console.error("Unknown Error:", error); // Handle truly unknown errors
+        }
       }
     };
 
     fetchCourses();
   }, []);
 
-  const handleCourseClick = async (id: any) => {
-    try {
-      const response = await axios.get<CheckAuthResponse>('http://localhost:5000/api/users/check-auth', { withCredentials: true });
-      console.log(response.data);
-      if (response.data.isAuthenticated) {
-        navigate(`/courses/${id}`);
-        setMenuAnchorEl(null);
-      } else {
-        setMenuAnchorEl(null);
-        alert("עליך להתחבר כדי לצפות בקורס.");
-      }
-    } catch (error) {
-      console.error("Authentication check failed:", error);
-      alert("עליך להתחבר כדי לצפות בקורס.");
+  function getCookie(name: string): string | null {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) {
+      return parts.pop()?.split(';').shift() || null;
     }
+    return null;
+  }
+
+  const handleCourseClick = async (id: any) => {
+      try {
+        const response = await axios.get<CheckAuthResponse>('https://0uipl61dfa.execute-api.us-east-1.amazonaws.com/dev/checkAuth', {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${getCookie('token')}` // Get the token from cookies (see previous examples)
+          }
+        });
+    
+        const authResponse = response.data;
+    
+        console.log("Authentication response:", authResponse);
+    
+        if (authResponse.isAuthenticated) {
+          navigate(`/courses/${id}`);
+          // No need to set menuAnchorEl to null here, navigation will handle it
+        } else {
+          // No need to set menuAnchorEl to null here either
+          alert(authResponse.message || "עליך להתחבר כדי לצפות בקורס."); // Use the message from the API if available
+        }
+    
+      } catch (error) {
+        console.error("Authentication check failed:", error);
+    
+        if (error instanceof AxiosError) {
+          console.error("Axios Error Details:", error.response?.data, error.response?.status, error.response?.headers);
+          console.error("Axios Request:", error.request);
+          console.error("Axios Message:", error.message);
+        } else if (error instanceof Error) {
+          console.error("General Error:", error.message);
+        } else {
+          console.error("Unknown Error:", error);
+        }
+    
+        alert("עליך להתחבר כדי לצפות בקורס."); // Display a generic message to the user
+      }
   };
+      
+    
 
   const handleHomeNav = () => {
     navigate('/home');
-  };
-
-  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setAuth(event.target.checked);
   };
 
   const handleAccMenu = (event: React.MouseEvent<HTMLElement>) => {
@@ -98,7 +137,7 @@ const NavBar: React.FC = () => {
   };
 
   const handleSignOut = () => {
-    axios.get('http://localhost:5000/api/users/logout', { withCredentials: true });
+    axios.get('https://0uipl61dfa.execute-api.us-east-1.amazonaws.com/dev/logoutUser', { withCredentials: true }); //change to aws
     navigate('/');
     setAnchorEl(null);
   };
@@ -143,7 +182,7 @@ const NavBar: React.FC = () => {
             </Menu>
             <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
             </Typography>
-            {auth && (
+            {(
               <div>
                 <IconButton
                   size="large"

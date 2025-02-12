@@ -5,12 +5,16 @@ import { useNavigate } from 'react-router-dom';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
+interface ApiResponse {
+    statusCode: number;
+    body: any; // Or a more specific type if you know the structure of the body
+  }
+
 export const Register: React.FC = () => {
     const [month, setMonth] = useState<string>('Jan');
     const [year, setYear] = useState<string>('2024');
     const [days, setDays] = useState<string[]>([]);
     const navigate = useNavigate();
-    const displayedErrors = new Set<string>();
   
     useEffect(() => {
         setDays(daysInMonth(month, year));
@@ -68,13 +72,31 @@ export const Register: React.FC = () => {
         if (!validateInput(firstName, lastName, username, password, birthYear)) return;
   
         try {
-            const response = await axios.post('http://localhost:5000/api/users/register', {
-                firstName,
-                lastName,
-                username,
-                password,
-                birthDate,
-                gender,
+            axios.post<ApiResponse>('https://0uipl61dfa.execute-api.us-east-1.amazonaws.com/dev/regUser', {
+                body: JSON.stringify({ // לשלוח את הנתונים בתוך body כמחרוזת JSON
+                    firstName: firstName,
+                    lastName: lastName,
+                    username: username,
+                    password: password,
+                    birthDate: birthDate,
+                    gender: gender,
+                }),
+            }, {
+                headers: {
+                    'Content-Type': 'application/json' // חשוב לוודא Content-Type
+                }
+            })
+            .then(response => {
+                console.log(response.data); // הנתונים מה-API נמצאים ב-response.data
+                if (response.data.statusCode === 200) {
+                    // Handle successful registration
+                } else {
+                    // Handle error
+                    console.error(response.data.body);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
             });
   
             toast.success('You have registered successfully! Redirecting to login...');

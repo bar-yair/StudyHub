@@ -1,6 +1,6 @@
 import React from 'react';
 import './login.css';
-import { useNavigate, Router, Route, Routes } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
 interface User {
@@ -23,7 +23,7 @@ const Login: React.FC = () => {
     const password = event.currentTarget.password.value;
   
     try {
-      const response = await axios.post('http://localhost:5000/api/users/login', {
+      const response = await axios.post('https://0uipl61dfa.execute-api.us-east-1.amazonaws.com/dev/loginUser', { //change to aws
         username,
         password,
       }, {withCredentials: true});

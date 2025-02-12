@@ -14,10 +14,31 @@ const Profile: React.FC = () => {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
 
   useEffect(() => {
+    function getCookie(name: string): string | null {
+      const value = `; ${document.cookie}`;
+      const parts = value.split(`; ${name}=`);
+      if (parts.length === 2) {
+        return parts.pop()?.split(';').shift() || null;
+      }
+      return null;
+    }
+    
     const fetchUserProfile = async () => {
       try {
         console.log('Fetching user profile...');
-        const response = await axios.get<UserProfile>('http://localhost:5000/api/users/profile', { withCredentials: true });
+        const token = getCookie('token'); // Replace 'token' with the actual name of your cookie
+
+        if (!token) {
+            console.error('No token found in cookies');
+            return; // Or handle the error as needed
+        }
+
+        const response = await axios.get<UserProfile>('https://0uipl61dfa.execute-api.us-east-1.amazonaws.com/dev/getUserProfile', {
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}` // Use the token from cookies
+            }
+        });
         console.log('User profile fetched:', response.data);
         setUserProfile(response.data);
       } catch (error) {

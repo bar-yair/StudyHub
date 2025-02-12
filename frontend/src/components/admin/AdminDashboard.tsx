@@ -36,7 +36,7 @@ const AdminDashboard: React.FC = () => {
 
   const fetchCourses = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/courses/returnCourses');
+      const response = await axios.get('https://0uipl61dfa.execute-api.us-east-1.amazonaws.com/dev/returnCourses'); //change to aws
       const coursesArr: Course[] = response.data as Course[];
       console.log(coursesArr);
       setCourses(coursesArr);
@@ -48,7 +48,7 @@ const AdminDashboard: React.FC = () => {
   const fetchUsers = async () => {
     try {
       console.log('Fetching users...');
-      const response = await axios.get('http://localhost:5000/api/users/returnUsers');
+      const response = await axios.get('https://0uipl61dfa.execute-api.us-east-1.amazonaws.com/dev/returnUsers'); //change to aws
       const usersArr: User[] = response.data as User[];
       console.log(usersArr);
       setUsers(usersArr);
@@ -61,7 +61,7 @@ const AdminDashboard: React.FC = () => {
     e.preventDefault();
     try {
       const courseToAdd = { ...newCourse, imageUrl: '/homepagepics/general.jpg' };
-      await axios.post('http://localhost:5000/api/courses/addCourse', courseToAdd);
+      await axios.post('https://0uipl61dfa.execute-api.us-east-1.amazonaws.com/dev/addCourse', courseToAdd);
       fetchCourses();
       setNewCourse({ courseId: 0, title: '', description: '', imageUrl: '/homepagepics/general.jpg' });
     } catch (error) {
@@ -72,7 +72,7 @@ const AdminDashboard: React.FC = () => {
   const handleDeleteCourse = async (courseId: number) => {
     if (window.confirm('Are you sure you want to delete this course?')) {
       try {
-        await axios.delete(`http://localhost:5000/api/courses/deleteCourse/${courseId}`);
+        await axios.delete(`https://0uipl61dfa.execute-api.us-east-1.amazonaws.com/dev/deleteCourse/${courseId}`); //change to aws
         fetchCourses();
       } catch (error) {
         console.error('Error deleting course:', error);
@@ -83,7 +83,7 @@ const AdminDashboard: React.FC = () => {
   const handleDeleteUser = async (userId: string) => {
     if (window.confirm('Are you sure you want to delete this user?')) {
       try {
-        await axios.delete(`http://localhost:5000/api/users/deleteUser/${userId}`);
+        await axios.delete(`https://0uipl61dfa.execute-api.us-east-1.amazonaws.com/dev/deleteUser/${userId}`); //change to aws
         fetchUsers();
       } catch (error) {
         console.error('Error deleting user:', error);

@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import './home.css';
 import axios from 'axios';
-import { useNavigate, Router, Route, Routes } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 interface Course {
   courseId: number,
@@ -24,7 +24,7 @@ const HomePage = () => {
   
   const fetchCourses = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/courses/returnCourses');
+      const response = await axios.get('https://0uipl61dfa.execute-api.us-east-1.amazonaws.com/dev/returnCourses'); //change to aws
       const coursesArr: Course[] = response.data as Course[];
       console.log(coursesArr);
       setCourses(coursesArr);

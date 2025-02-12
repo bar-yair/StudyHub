@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import axios from 'axios';
+import AxiosError from 'axios-error'
 
 import './App.css'
 
@@ -14,29 +13,46 @@ import Register from './components/register/register'
 import AdminDashboard from './components/admin/AdminDashboard';
 import Profile from './components/profile/profile';
 interface Course {
-  courseId: number,
+  courseId: string,
   title: string;
   description: string;
   imageUrl: string;
 }
 
 function App() {
-  const [count, setCount] = useState(0)
 
   const [courses, setCourses] = useState<Course[]>([]);
 
   useEffect(() => {
     const fetchCourses = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/api/courses/returnCourses');
-        const coursesArr: Course[] = response.data as Course[];
-        console.log(coursesArr);
+        const response = await axios.get<Course[]>('https://0uipl61dfa.execute-api.us-east-1.amazonaws.com/dev/returnCourses', {
+          headers: {
+            'Content-Type': 'application/json' // Good practice, even for GET requests.
+          }
+        });
+
+        // No need for type assertion here, axios handles it.
+        const coursesArr = response.data; 
+
+        console.log("Courses received:", coursesArr); // Better log message
         setCourses(coursesArr);
+
       } catch (error) {
         console.error('Error fetching courses:', error);
+  
+        if (error instanceof AxiosError) { // Check if error is an instance of AxiosError
+          console.error("Axios Error Details:", error.response?.data, error.response?.status, error.response?.headers);
+          console.error("Axios Request:", error.request);
+          console.error("Axios Message:", error.message);
+        } else if (error instanceof Error) {
+          console.error("General Error:", error.message);
+        } else {
+          console.error("Unknown Error:", error);
+        }
       }
     };
-
+  
     fetchCourses();
   }, []);
 
