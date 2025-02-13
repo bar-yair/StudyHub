@@ -3,25 +3,27 @@ import axios from 'axios';
 import './AdminDashboard.css';
 
 interface Course {
-  courseId: number;
+  courseId: string;
   title: string;
   description: string;
   imageUrl: string;
 }
 
 interface User {
-  _id: string;
   username: string;
-  email: string;
   firstName: string;
   lastName: string;
+}
+
+interface ApiResponse {
+  body: string;
 }
 
 const AdminDashboard: React.FC = () => {
   const [courses, setCourses] = useState<Course[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [newCourse, setNewCourse] = useState<Partial<Course>>({
-    courseId: 0,
+    courseId: '',
     title: '',
     description: '',
     imageUrl: '/homepagepics/general.jpg'
@@ -36,10 +38,17 @@ const AdminDashboard: React.FC = () => {
 
   const fetchCourses = async () => {
     try {
-      const response = await axios.get('https://0uipl61dfa.execute-api.us-east-1.amazonaws.com/dev/returnCourses'); //change to aws
-      const coursesArr: Course[] = response.data as Course[];
+      const response = await axios.get<ApiResponse>('https://0uipl61dfa.execute-api.us-east-1.amazonaws.com/dev/getCourses', {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      const coursesArr = JSON.parse(response.data.body);
       console.log(coursesArr);
+
+      console.log("Courses received:", coursesArr);
       setCourses(coursesArr);
+
     } catch (error) {
       console.error('Error fetching courses:', error);
     }
@@ -48,10 +57,18 @@ const AdminDashboard: React.FC = () => {
   const fetchUsers = async () => {
     try {
       console.log('Fetching users...');
-      const response = await axios.get('https://0uipl61dfa.execute-api.us-east-1.amazonaws.com/dev/returnUsers'); //change to aws
-      const usersArr: User[] = response.data as User[];
+      const response = await axios.get<ApiResponse>('https://0uipl61dfa.execute-api.us-east-1.amazonaws.com/dev/getUsers', {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      const usersArr = JSON.parse(response.data.body);
+
       console.log(usersArr);
+
+      console.log("users received:", usersArr);
       setUsers(usersArr);
+
     } catch (error) {
       console.error('Error fetching users:', error);
     }
@@ -60,19 +77,27 @@ const AdminDashboard: React.FC = () => {
   const handleAddCourse = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const courseToAdd = { ...newCourse, imageUrl: '/homepagepics/general.jpg' };
-      await axios.post('https://0uipl61dfa.execute-api.us-east-1.amazonaws.com/dev/addCourse', courseToAdd);
+      const courseToAdd = JSON.stringify({ ...newCourse });
+      await axios.post('https://0uipl61dfa.execute-api.us-east-1.amazonaws.com/dev/addCourse', courseToAdd, {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
       fetchCourses();
-      setNewCourse({ courseId: 0, title: '', description: '', imageUrl: '/homepagepics/general.jpg' });
+      setNewCourse({ courseId: '', title: '', description: '', imageUrl: '/homepagepics/general.jpg' });
     } catch (error) {
       console.error('Error adding course:', error);
     }
   };
 
-  const handleDeleteCourse = async (courseId: number) => {
+  const handleDeleteCourse = async (courseId: string) => {
     if (window.confirm('Are you sure you want to delete this course?')) {
       try {
-        await axios.delete(`https://0uipl61dfa.execute-api.us-east-1.amazonaws.com/dev/deleteCourse/${courseId}`); //change to aws
+        await axios.delete(`https://0uipl61dfa.execute-api.us-east-1.amazonaws.com/dev/deleteCourse/${courseId}`, {
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
         fetchCourses();
       } catch (error) {
         console.error('Error deleting course:', error);
@@ -80,10 +105,14 @@ const AdminDashboard: React.FC = () => {
     }
   };
 
-  const handleDeleteUser = async (userId: string) => {
+  const handleDeleteUser = async (username: string) => {
     if (window.confirm('Are you sure you want to delete this user?')) {
       try {
-        await axios.delete(`https://0uipl61dfa.execute-api.us-east-1.amazonaws.com/dev/deleteUser/${userId}`); //change to aws
+        await axios.delete(`https://0uipl61dfa.execute-api.us-east-1.amazonaws.com/dev/deleteUser/${username}`, {
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
         fetchUsers();
       } catch (error) {
         console.error('Error deleting user:', error);
@@ -94,16 +123,16 @@ const AdminDashboard: React.FC = () => {
   return (
     <div className="admin-dashboard">
       <h1>Admin Dashboard</h1>
-      
+
       <div className="tab-buttons">
-        <button 
-          className={activeTab === 'courses' ? 'active' : ''} 
+        <button
+          className={activeTab === 'courses' ? 'active' : ''}
           onClick={() => setActiveTab('courses')}
         >
           Manage Courses
         </button>
-        <button 
-          className={activeTab === 'users' ? 'active' : ''} 
+        <button
+          className={activeTab === 'users' ? 'active' : ''}
           onClick={() => setActiveTab('users')}
         >
           Manage Users
@@ -118,7 +147,7 @@ const AdminDashboard: React.FC = () => {
               type="number"
               placeholder="Course ID"
               value={newCourse.courseId}
-              onChange={(e) => setNewCourse({...newCourse, courseId: parseInt(e.target.value)})}
+              onChange={(e) => setNewCourse({...newCourse, courseId: e.target.value})}
               required
             />
             <input
@@ -145,7 +174,7 @@ const AdminDashboard: React.FC = () => {
                   <h3>{course.title}</h3>
                   <p>{course.description}</p>
                 </div>
-                <button 
+                <button
                   onClick={() => handleDeleteCourse(course.courseId)}
                   className="delete-button"
                 >
@@ -163,14 +192,13 @@ const AdminDashboard: React.FC = () => {
           <div className="users-list">
             {users && users.length > 0 ? (
               users.map((user) => (
-                <div key={user._id} className="user-item">
+                <div key={user.username} className="user-item">
                   <div className="user-info">
                     <h3>Username: {user.username}</h3>
-                    <p>Email: {user.email}</p>
                     <p>Name: {user.firstName} {user.lastName}</p>
                   </div>
-                  <button 
-                    onClick={() => handleDeleteUser(user._id)}
+                  <button
+                    onClick={() => handleDeleteUser(user.username)}
                     className="delete-button"
                   >
                     Delete

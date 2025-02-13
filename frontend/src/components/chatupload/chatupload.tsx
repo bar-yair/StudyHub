@@ -1,20 +1,26 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import axios from 'axios';
+import AxiosError from 'axios-error';
 import './chatupload.css'; // CSS file for the merged component
 //import { useNavigate } from 'react-router-dom';
 
 interface Course {
-  courseId: number,
+  courseId: string,
   title: string;
   description: string;
   imageUrl: string;
 }
 
 interface Message {
+  courseId: string;
   content: string;
   sender: string;
   timestamp: string;
+}
+
+interface ApiResponse {
+  body: string;
 }
 
 const chatupload: React.FC = () => {
@@ -26,17 +32,30 @@ const chatupload: React.FC = () => {
   useEffect(() => { 
     const fetchCourseAndMessages = async () => {
       try {
-        // שליפת פרטי הקורס
-        const responseCourse = await axios.get<Course>(`https://0uipl61dfa.execute-api.us-east-1.amazonaws.com/dev/returnCourse/${courseId}`); //change to aws
-        setCourse(responseCourse.data);
-  
-        // שליפת הודעות הצ'אט של הקורס
-        const responseMessages = await axios.get<Message[]>(`https://0uipl61dfa.execute-api.us-east-1.amazonaws.com/dev/getMessages/${courseId}`); //change to aws
-        responseMessages.data.forEach((msg) => {
-           console.log(msg); 
-           console.log(msg.timestamp);
+        // שליפת פרטי הקורס (ללא שינוי)
+        const responseCourse = await axios.get<ApiResponse>(`https://0uipl61dfa.execute-api.us-east-1.amazonaws.com/dev/getCourse/${courseId}`, {
+          headers: {
+            'Content-Type': 'application/json'
+          }
         });
-        setDBMessages(responseMessages.data); // עדכון מצב ההודעות
+
+        const course = JSON.parse(responseCourse.data.body); // No need for type assertion
+
+        console.log('User profile fetched:', course);
+        setCourse(course);
+
+        // שליפת הודעות הצ'אט של הקורס (השינוי כאן)
+        const responseMessages = await axios.get<ApiResponse>(`https://0uipl61dfa.execute-api.us-east-1.amazonaws.com/dev/getMessages/${courseId}`, {
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+
+        const messages = JSON.parse(responseMessages.data.body); // No need for type assertion
+
+        console.log("Messages received:", messages);
+        setDBMessages(messages);
+
       } catch (error) {
         console.error('Error fetching course or messages:', error);
       }
@@ -46,15 +65,33 @@ const chatupload: React.FC = () => {
   }, [courseId]);
   
   useEffect(() => {
-  const fetchCourse = async () => {
-    try {
-      const response = await axios.get<Course>(`https://0uipl61dfa.execute-api.us-east-1.amazonaws.com/dev/returnCourse/${courseId}`); //change to aws
-      const course: Course = response.data as Course;
-      setCourse(course);
-    } catch (error) {
-      console.error('Error fetching course:', error);
-    }
-  };
+    const fetchCourse = async () => {
+      try {
+        const response = await axios.get<ApiResponse>(`https://0uipl61dfa.execute-api.us-east-1.amazonaws.com/dev/getCourse/${courseId}`, {
+          headers: {
+            'Content-Type': 'application/json' // Important!
+          }
+        });
+
+        const course = JSON.parse(response.data.body); // No need for type assertion
+
+        console.log('Course fetched:', course);
+        setCourse(course);
+
+      } catch (error) {
+        console.error('Error fetching course:', error);
+
+        if (error instanceof AxiosError) {
+          console.error("Axios Error Details:", error.response?.data, error.response?.status, error.response?.headers);
+          console.error("Axios Request:", error.request);
+          console.error("Axios Message:", error.message);
+        } else if (error instanceof Error) {
+          console.error("General Error:", error.message);
+        } else {
+          console.error("Unknown Error:", error);
+        }
+      }
+    };
 
     fetchCourse();
   },[courseId]);
@@ -76,21 +113,25 @@ const chatupload: React.FC = () => {
     if (message.trim()) {
       try {
         // שלח את ההודעה לשרת
-        await axios.post('https://0uipl61dfa.execute-api.us-east-1.amazonaws.com/dev/sendMessage', { //change to aws
+        await axios.post('https://0uipl61dfa.execute-api.us-east-1.amazonaws.com/dev/sendMessage', { 
           courseId, // הקורס שאליו ההודעה שייכת
-          content: message // תוכן ההודעה
-        }, {withCredentials: true}); // כדי שהטוקן ישלח עם הבקשה
-
+          content: message, // תוכן ההודעה
+          timestamp: Date.now(), // זמן ההודעה
+        }, {
+          headers: {
+            'Content-Type': 'application/json' // חשוב!
+          }
+        });
+  
         window.location.reload();
-
+  
         // אפשר להוסיף טיפול בתגובה מהשרת כאן אם רוצים
-
+  
       } catch (error) {
         console.error('Error sending message:', error);
       }
     }
   };
-
 
   // Handle file selection
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {

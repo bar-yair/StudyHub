@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { jwtDecode } from 'jwt-decode';
 import axios from 'axios';
 import './profile.css';
 
@@ -10,37 +11,43 @@ interface UserProfile {
   gender: string;
 }
 
+interface ApiResponse {
+  body: string;
+}
+
 const Profile: React.FC = () => {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
 
   useEffect(() => {
-    function getCookie(name: string): string | null {
-      const value = `; ${document.cookie}`;
-      const parts = value.split(`; ${name}=`);
-      if (parts.length === 2) {
-        return parts.pop()?.split(';').shift() || null;
-      }
-      return null;
-    }
     
     const fetchUserProfile = async () => {
       try {
         console.log('Fetching user profile...');
-        const token = getCookie('token'); // Replace 'token' with the actual name of your cookie
-
+        const token = localStorage.getItem('token'); 
+    
         if (!token) {
-            console.error('No token found in cookies');
-            return; // Or handle the error as needed
+            console.error('No token found in localStorage');
+            return; 
         }
-
-        const response = await axios.get<UserProfile>('https://0uipl61dfa.execute-api.us-east-1.amazonaws.com/dev/getUserProfile', {
+    
+        // Decode the JWT to extract username
+        const decodedToken = jwtDecode(token);  // או שם המפתח המתאים מה-token
+    
+        console.log(' decoded token:', decodedToken);
+    
+        // קריאה ל-API עם ה-username ב-path
+        const response = await axios.get<ApiResponse>(`https://your-api-url/dev/getUserProfile/`, {
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}` // Use the token from cookies
-            }
+                'Authorization': `Bearer ${decodedToken}`,
+            },
         });
-        console.log('User profile fetched:', response.data);
-        setUserProfile(response.data);
+    
+        const userData = JSON.parse(response.data.body);
+    
+        console.log('User profile fetched:', userData);
+        setUserProfile(userData);
+    
       } catch (error) {
         console.error('Error fetching user profile:', error);
       }

@@ -2,14 +2,18 @@ import { useState, useEffect } from 'react';
 import './home.css';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import AxiosError from 'axios-error';
 
 interface Course {
-  courseId: number,
+  courseId: string,
   title: string;
   description: string;
   imageUrl: string;
 }
 
+interface ApiResponse {
+  body: string;
+}
 
 const HomePage = () => {
   const navigate = useNavigate();
@@ -22,18 +26,35 @@ const HomePage = () => {
 
   useEffect(() => { 
   
-  const fetchCourses = async () => {
-    try {
-      const response = await axios.get('https://0uipl61dfa.execute-api.us-east-1.amazonaws.com/dev/returnCourses'); //change to aws
-      const coursesArr: Course[] = response.data as Course[];
-      console.log(coursesArr);
-      setCourses(coursesArr);
-    } catch (error) {
-      console.error('Error fetching courses:', error);
-    }
-  };
+    const fetchCourses = async () => {
+      try {
+        const response = await axios.get<ApiResponse>('https://0uipl61dfa.execute-api.us-east-1.amazonaws.com/dev/getCourses', {
+          headers: {
+            'Content-Type': 'application/json' // Important!
+          }
+        });
 
-  fetchCourses();
+        const coursesArr = JSON.parse(response.data.body); 
+
+        console.log("Courses received:", coursesArr);
+        setCourses(coursesArr);
+        
+      } catch (error) {
+        console.error('Error fetching courses:', error);
+
+        if (error instanceof AxiosError) {
+          console.error("Axios Error Details:", error.response?.data, error.response?.status, error.response?.headers);
+          console.error("Axios Request:", error.request);
+          console.error("Axios Message:", error.message);
+        } else if (error instanceof Error) {
+          console.error("General Error:", error.message);
+        } else {
+          console.error("Unknown Error:", error);
+        }
+      }
+    };
+
+    fetchCourses();
  },[]);
   
 

@@ -19,6 +19,10 @@ interface Course {
   imageUrl: string;
 }
 
+interface ApiResponse {
+  body: string;
+}
+
 function App() {
 
   const [courses, setCourses] = useState<Course[]>([]);
@@ -26,16 +30,16 @@ function App() {
   useEffect(() => {
     const fetchCourses = async () => {
       try {
-        const response = await axios.get<Course[]>('https://0uipl61dfa.execute-api.us-east-1.amazonaws.com/dev/returnCourses', {
+        const response = await axios.get<ApiResponse>('https://0uipl61dfa.execute-api.us-east-1.amazonaws.com/dev/getCourses', {
           headers: {
             'Content-Type': 'application/json' // Good practice, even for GET requests.
           }
         });
 
         // No need for type assertion here, axios handles it.
-        const coursesArr = response.data; 
-
-        console.log("Courses received:", coursesArr); // Better log message
+        const coursesArr = JSON.parse(response.data.body); 
+        
+        console.log("Courses received:", coursesArr);
         setCourses(coursesArr);
 
       } catch (error) {

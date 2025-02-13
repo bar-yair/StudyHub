@@ -23,10 +23,16 @@ const Login: React.FC = () => {
     const password = event.currentTarget.password.value;
   
     try {
-      const response = await axios.post('https://0uipl61dfa.execute-api.us-east-1.amazonaws.com/dev/loginUser', { //change to aws
-        username,
-        password,
-      }, {withCredentials: true});
+      const response = await axios.post('https://0uipl61dfa.execute-api.us-east-1.amazonaws.com/dev/loginUser', {
+        body: JSON.stringify({ // Important: Send data in the body as JSON string
+          username: username,
+          password: password
+        })
+      }, {
+        headers: {
+          'Content-Type': 'application/json' // Crucial!
+        }
+      });
       const userData = response.data as User;
       localStorage.setItem("token", userData.token);
       localStorage.setItem("username", userData.username);

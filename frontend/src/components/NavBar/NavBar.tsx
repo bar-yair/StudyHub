@@ -26,22 +26,29 @@ interface CheckAuthResponse {
   user: any;
 }
 
+
+interface ApiResponse {
+  body: string;
+}
+
 const NavBar: React.FC = () => {
   const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const [menuAnchorEl, setMenuAnchorEl] = React.useState<null | HTMLElement>(null);
   const [courses, setCourses] = useState<Course[]>([]);
+  const token = localStorage.getItem('token');
 
   useEffect(() => { 
     const fetchCourses = async () => {
       try {
-        const response = await axios.get<Course[]>('https://0uipl61dfa.execute-api.us-east-1.amazonaws.com/dev/returnCourses', {
+        const response = await axios.get<ApiResponse>('https://0uipl61dfa.execute-api.us-east-1.amazonaws.com/dev/getCourses', {
           headers: {
             'Content-Type': 'application/json' // Good practice
           }
         });
 
-        const coursesArr = response.data; // No need for type assertion here
+        const coursesArr = JSON.parse(response.data.body); // No need for type assertion here
+
 
         console.log("Courses received:", coursesArr);
         setCourses(coursesArr);
@@ -64,21 +71,12 @@ const NavBar: React.FC = () => {
     fetchCourses();
   }, []);
 
-  function getCookie(name: string): string | null {
-    const value = `; ${document.cookie}`;
-    const parts = value.split(`; ${name}=`);
-    if (parts.length === 2) {
-      return parts.pop()?.split(';').shift() || null;
-    }
-    return null;
-  }
-
   const handleCourseClick = async (id: any) => {
       try {
         const response = await axios.get<CheckAuthResponse>('https://0uipl61dfa.execute-api.us-east-1.amazonaws.com/dev/checkAuth', {
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${getCookie('token')}` // Get the token from cookies (see previous examples)
+            'Authorization': `Bearer ${token}` // Get the token from cookies (see previous examples)
           }
         });
     
@@ -137,7 +135,12 @@ const NavBar: React.FC = () => {
   };
 
   const handleSignOut = () => {
-    axios.get('https://0uipl61dfa.execute-api.us-east-1.amazonaws.com/dev/logoutUser', { withCredentials: true }); //change to aws
+    axios.get('https://0uipl61dfa.execute-api.us-east-1.amazonaws.com/dev/logoutUser', {
+      headers: {
+        'Content-Type': 'application/json', // חשוב!
+        'Authorization': `Bearer ${token}` // אם משתמשים בטוקן JWT
+      }
+    });
     navigate('/');
     setAnchorEl(null);
   };
